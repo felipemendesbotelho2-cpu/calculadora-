@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessão de Entradas — Painel</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#2a313c;--tx:#e6edf3;--mut:#8b949e;--ok:#3fb950;--bad:#f85149;--acc:#58a6ff;--warn:#d29922}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+header{padding:16px 16px 4px;max-width:1200px;margin:auto}
+h1{margin:0;font-size:21px}
+.warn{background:#2d2208;border:1px solid var(--warn);color:#f0d58a;border-radius:10px;padding:10px 14px;margin:8px 0 0;font-size:13px}
+.wrap{max-width:1200px;margin:auto;padding:12px 16px 40px;display:grid;gap:16px;grid-template-columns:330px 1fr;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+aside{position:sticky;top:10px;display:grid;gap:14px}
+@media(max-width:900px){aside{position:static}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h2{margin:0 0 10px;font-size:13px;color:var(--acc);text-transform:uppercase;letter-spacing:.05em}
+label{display:block;font-size:12.5px;color:var(--mut);margin:8px 0 3px}
+select,input{width:100%;background:#0d1117;border:1px solid var(--line);color:var(--tx);padding:8px 10px;border-radius:8px;font-size:15px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.sug{text-align:center}
+.sug .v{font-size:34px;font-weight:800;margin:2px 0}
+.sug small{color:var(--mut)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.btn{border:0;border-radius:12px;padding:18px 0;font-size:22px;font-weight:800;cursor:pointer;color:#04111f}
+.btn.w{background:var(--ok)}.btn.r{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.sec{display:flex;gap:8px;margin-top:10px}
+.cp{display:flex;gap:8px}
+.cp input{flex:1;min-width:0}
+.cp button{background:#21262d;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:0 14px;cursor:pointer;font-size:14px;white-space:nowrap}
+.cp button.ok{background:var(--ok);color:#04111f;border-color:var(--ok)}
+.sec button{flex:1;background:#21262d;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:#0d1117;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi small{color:var(--mut);display:block;font-size:12px}
+.kpi b{font-size:21px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.wn{color:var(--warn)}
+.status{padding:12px 14px;border-radius:10px;font-weight:700;display:none}
+.status.on{display:block}
+.status.s-ok{background:#0f2a17;border:1px solid var(--ok);color:var(--ok)}
+.status.s-bad{background:#2d1114;border:1px solid var(--bad);color:var(--bad)}
+.prog{margin-top:12px}
+.prog .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.pb{height:12px;background:#0d1117;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pb i{display:block;height:100%}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)}
+.tw{max-height:380px;overflow:auto}
+.pill{display:inline-block;padding:1px 10px;border-radius:20px;font-weight:700;font-size:12.5px}
+.pill.w{background:#0f2a17;color:var(--ok)}.pill.r{background:#2d1114;color:var(--bad)}
+.note{font-size:12.5px;color:var(--mut);margin-top:8px}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 Sessão de Entradas</h1>
+  <div class="warn">Ferramenta de controle e cálculo. Não garante lucro: com payout abaixo de 100% o resultado esperado é negativo se a sua taxa de acerto real for baixa. O stop é o valor da sessão.</div>
+</header>
+
+<div class="wrap">
+<aside>
+  <div class="card">
+    <h2>Sessão</h2>
+    <div class="row">
+      <div><label>Valor da sessão (R$)</label><input id="banca" type="number" value="100" min="1" step="any"></div>
+      <div><label>Payout (%)</label><input id="payout" type="number" value="85" min="1" max="100"></div>
+    </div>
+    <div class="row">
+      <div><label>Modo</label><select id="modo"><option value="agr">Agressiva</option><option value="mod">Moderada</option></select></div>
+    </div>
+    <div class="note" id="planNote" style="margin:6px 0 0"></div>
+  </div>
+
+  <div class="card sug">
+    <h2>Próxima entrada</h2>
+    <div class="v" id="sugV">R$ 5,00</div>
+    <div id="sugM"></div>
+    <label style="text-align:left">Valor desta entrada (editável)</label>
+    <div class="cp">
+      <input id="stk" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00">
+      <button id="bcp" type="button" onclick="copiar()">📋 Copiar</button>
+    </div>
+    <div class="btns">
+      <button class="btn w" id="bw" onclick="reg(true)">WIN</button>
+      <button class="btn r" id="br" onclick="reg(false)">RED</button>
+    </div>
+    <div class="sec">
+      <button onclick="desfazer()">↩ Desfazer última</button>
+      <button id="bn" onclick="novaSessao()">🔄 Nova sessão</button>
+    </div>
+    <div class="note">Atalhos: tecla <b>W</b> = win, tecla <b>R</b> = red.</div>
+  </div>
+</aside>
+
+<main style="display:grid;gap:14px">
+  <div class="status" id="status"></div>
+
+  <section class="card">
+    <h2>Em tempo real</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="prog">
+      <div class="lbl"><span>Progresso até o alvo</span><span id="pa"></span></div>
+      <div class="pb"><i id="barA" style="background:var(--ok);width:0"></i></div>
+    </div>
+    <div class="prog">
+      <div class="lbl"><span>Margem do stop usada</span><span id="ps"></span></div>
+      <div class="pb"><i id="barS" style="background:var(--bad);width:0"></i></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Chances a partir de agora</h2>
+    <div class="kpis" id="prob"></div>
+    <div class="note" id="probNote"></div>
+  </section>
+
+  <section class="card">
+    <h2>Histórico de entradas</h2>
+    <div class="tw"><table id="tb"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Como a próxima entrada é calculada</h2>
+    <div class="note" style="font-size:13.5px;margin-top:0">
+      Meta fixa de 5% da sessão, stop igual ao valor da sessão e plano de 10 entradas (4 wins e 6 reds, em qualquer ordem). A primeira entrada é 2% da sessão (mínimo R$ 2,00); as seguintes são calculadas para fechar a meta com os wins e reds que ainda faltam. Se o plano se esgota sem bater a meta, ele recomeça. <b>Agressiva:</b> segue até a meta ou até perder o valor da sessão. <b>Moderada:</b> ao perder 50% da sessão o ciclo termina; a perda vira dívida e um novo ciclo começa do zero para recuperá-la; depois a sessão volta a buscar a meta. Aumentar a entrada depois de reds não muda o valor esperado: só concentra o risco.
+    </div>
+  </section>
+</main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pc=v=>(v*100).toFixed(0)+'%';
+let hist=[];let dirty=false;
+const ids=['banca','payout','modo'];
+const LIM_CICLO=0.5; // modo moderado: cada ciclo para ao perder 50% do valor da sessão
+const ENTRADAS=10,ACERTO=40,ENTRADA_MIN=2,BASE_PCT=2,ALVO_PCT=5; // valores fixos (campos removidos do painel)
+
+function cfg(){
+  const g=i=>+$(i).value;
+  const N=ENTRADAS;
+  const p=ACERTO/100;
+  let W=Math.round(N*p);W=Math.max(1,Math.min(N,W));
+  return{banca:g('banca'),base:Math.max(ENTRADA_MIN,Math.round(g('banca')*BASE_PCT)/100),stop:g('banca'),alvo:Math.round(g('banca')*ALVO_PCT)/100,r:g('payout')/100,p,minS:ENTRADA_MIN,maxS:Infinity,maxE:200,N,W,R:N-W,mod:$('modo').value==='mod'};
+}
+function lossLim(c){return Math.min(c.stop,c.banca)}
+
+// Tabela do plano: ps[w][r] = menor lucro da sessão com o qual ainda é possível fechar o alvo
+// se faltam w wins e r reds, em qualquer ordem, escolhendo bem a entrada de cada vez.
+const tabCache={};let tabN=0;
+// T = lucro absoluto que fecha o ciclo; CAP = quanto ainda se pode perder abaixo de zero (piso do ciclo = -CAP)
+function tabela(c,T,CAP){
+  T=Math.round(T*100)/100;CAP=Math.round(CAP*100)/100;
+  const key=[T,CAP,c.r,c.minS,c.maxS,c.W,c.R].join('|');
+  if(tabCache[key])return tabCache[key];
+  if(tabN>3000){for(const k in tabCache)delete tabCache[k];tabN=0}
+  const R=c.r,M=c.minS,SC=c.maxS,ps=[];
+  for(let w=0;w<=c.W;w++)ps.push(new Array(c.R+1).fill(Infinity));
+  const feas=(w,r,p)=>{
+    if(w===0&&r===0)return p>=T-1e-9;
+    if(w===0)return p-M>=ps[0][r-1]-1e-9&&M<=CAP+p;
+    const smin=Math.max(M,(ps[w-1][r]-p)/R);
+    if(!isFinite(smin)||smin>CAP+p+1e-9||smin>SC+1e-9)return false;
+    if(r>0&&p-smin<ps[w][r-1]-1e-9)return false;
+    return true;
+  };
+  for(let w=0;w<=c.W;w++)for(let r=0;r<=c.R;r++){
+    let lo=-CAP,hi=T+(r+w)*CAP*4+1000;
+    if(!feas(w,r,hi)){ps[w][r]=Infinity;continue}
+    if(feas(w,r,lo)){ps[w][r]=lo;continue}
+    for(let i=0;i<60;i++){const m=(lo+hi)/2;if(feas(w,r,m))hi=m;else lo=m}
+    ps[w][r]=hi;
+  }
+  tabCache[key]=ps;tabN++;return ps;
+}
+
+// ---- estado da sessão (sempre recalculado a partir do histórico) ----
+// L = lucro da sessão; L0 = lucro no início do ciclo atual; wl/rl = wins/reds que faltam no plano;
+// cn = entradas do ciclo atual; cy = número do ciclo
+function novoEst(c){return{L:0,L0:0,wl:c.W,rl:c.R,cn:0,cy:1}}
+// alvo (lucro absoluto) do ciclo: com dívida (moderada), o ciclo só tenta voltar a zero
+function alvoCiclo(c,st){return(c.mod&&st.L0<0)?0:c.alvo}
+// piso (lucro absoluto) do ciclo: agressiva = stop total; moderada = 50% da sessão abaixo do início do ciclo
+function pisoCiclo(c,st){const tot=-lossLim(c);return c.mod?Math.max(st.L0-LIM_CICLO*c.banca,tot):tot}
+function passo(c,st,win,pl){
+  let{L,L0,wl,rl,cn,cy}=st;
+  const piso=pisoCiclo(c,st);
+  L+=pl;cn++;
+  if(win)wl--;else rl--;
+  if(L>=c.alvo-0.004)return{L,L0,wl,rl,cn,cy};                                  // alvo da sessão
+  if(c.mod&&L0<0&&L>=-0.004)return{L,L0:L,wl:c.W,rl:c.R,cn:0,cy:cy+1};          // dívida recuperada
+  if(c.mod&&L<=piso+0.004&&piso>-lossLim(c)+0.004)return{L,L0:L,wl:c.W,rl:c.R,cn:0,cy:cy+1}; // stop do ciclo: recomeça do zero
+  if(wl<=0||rl<0){wl=c.W;rl=c.R}                                                // plano esgotado: novo plano
+  return{L,L0,wl,rl,cn,cy};
+}
+function estado(c){let st=novoEst(c);hist.forEach(h=>{st=passo(c,st,h.w,h.pl)});return st}
+
+// regra da próxima entrada
+function sug(c,st){
+  const{L,wl,rl,cn}=st;
+  const T=alvoCiclo(c,st),piso=pisoCiclo(c,st),room=L-piso,trem=T-L;
+  if(L>=c.alvo-0.004)return{s:0,m:'alvo'};
+  if(L+lossLim(c)<=0.004||room<=0.004)return{s:0,m:'stop'};
+  let s,m;
+  if(cn===0){s=c.base;m='inicial'}
+  else{
+    const ps=tabela(c,T,-piso),t=(ps[wl-1]||[])[rl];
+    if(wl>=1&&isFinite(t)){s=Math.max(c.minS,(t-L)/c.r)}
+    else s=Math.min(room,trem/(Math.max(1,wl)*c.r));
+    m='plano';
+  }
+  s=Math.min(s,c.maxS);
+  const sg=trem/c.r;
+  if(sg<s){s=sg;m='fechar'}
+  s=Math.min(Math.max(c.minS,Math.ceil(s*100-1e-6)/100),c.maxS); // arredonda para cima: não perde o alvo por centavos
+  s=Math.min(s,Math.round(room*100)/100);
+  return{s,m};
+}
+// o plano é garantido (em qualquer ordem) com esta entrada inicial?
+function planoGarantido(c){
+  const st=novoEst(c),CAP=-pisoCiclo(c,st),ps=tabela(c,alvoCiclo(c,st),CAP),e=c.base;
+  const okW=ps[c.W-1]&&e*c.r>=ps[c.W-1][c.R]-1e-9;
+  const okR=c.R===0||(-e>=ps[c.W][c.R-1]-1e-9);
+  return okW&&okR&&e<=CAP;
+}
+// pior caso do plano: percorre todas as ordens possíveis de W wins e R reds
+function piorCaso(c){
+  let minL=0,maxS=0,ok=true;
+  const rec=(st,w,r)=>{
+    const sg=sug(c,st);
+    if(sg.m==='alvo')return;
+    if(sg.m==='stop'||(w===0&&r===0)){ok=false;return}
+    maxS=Math.max(maxS,sg.s);
+    if(w>0)rec(passo(c,st,true,sg.s*c.r),w-1,r);
+    if(r>0){const n=passo(c,st,false,-sg.s);minL=Math.min(minL,n.L);rec(n,w,r-1)}
+  };
+  rec(novoEst(c),c.W,c.R);
+  return{perda:-minL,maxS,ok};
+}
+function sim(c,st0,runs){
+  let a=0,b=0,l=0;
+  for(let i=0;i<runs;i++){
+    let st={...st0},k=0;
+    for(;;){
+      const sg=sug(c,st);
+      if(sg.m==='alvo'){a++;break}
+      if(sg.m==='stop'){b++;break}
+      if(k>=c.maxE||!sg.s){l++;break}
+      const win=Math.random()<c.p;
+      st=passo(c,st,win,win?sg.s*c.r:-sg.s);k++;
+    }
+  }
+  return{a:a/runs,b:b/runs,l:l/runs};
+}
+const MSG={inicial:['Entrada inicial','Primeira entrada: a % da sessão que você definiu.',''],
+  plano:['Entrada do plano','Calculada para fechar o alvo com os wins e reds que ainda faltam no plano (em qualquer ordem).','wn'],
+  fechar:['Entrada de fechamento','Só o necessário para bater o alvo com uma vitória.','ok']};
+
+function save(){try{const c={};ids.forEach(i=>c[i]=$(i).value);localStorage.setItem('sessao_v1',JSON.stringify({c,hist}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem('sessao_v1')||'null');if(d){
+  let c=d.c;
+  if(Array.isArray(c)){const old=['banca','base','stop','alvo','payout','acerto','min','maxe','rec','mult','modo','wins'];const o={};old.forEach((i,k)=>{if(c[k]!=null)o[i]=c[k]});c=o}
+  ids.forEach(i=>{if(c&&c[i]!=null)$(i).value=c[i]});hist=d.hist||[]}}catch(e){}}
+
+function lucro(){return hist.reduce((a,h)=>a+h.pl,0)}
+// prejuízo da sessão a recuperar: enquanto o lucro estiver negativo, continua em recuperação
+function cicloLoss(){return Math.max(0,-lucro())}
+
+// valor do campo da entrada: aceita ponto ou vírgula
+function lerStk(){return parseFloat(String($('stk').value).replace(',','.'))}
+// copia o valor da entrada com ponto (sem vírgula e sem R$) para colar na corretora
+function copiar(){
+  const v=lerStk();if(!(v>0))return;
+  const txt=v.toFixed(2),b=$('bcp');
+  const ok=()=>{b.textContent='✓ Copiado';b.classList.add('ok');setTimeout(()=>{b.textContent='📋 Copiar';b.classList.remove('ok')},1500)};
+  const fallback=()=>{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(t)};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(ok,fallback);else fallback();
+}
+function reg(win){
+  const c=cfg(),es=estado(c),sg=sug(c,es);
+  if(sg.m==='alvo'||sg.m==='stop')return;
+  let s=lerStk();if(!(s>0))return;
+  s=Math.min(s,Math.max(0,es.L-pisoCiclo(c,es)));
+  if(!(s>0))return;
+  const pl=win?s*c.r:-s;
+  hist.push({t:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),w:win,s:Math.round(s*100)/100,pl:Math.round(pl*100)/100,r:c.r});
+  dirty=false;save();render();
+}
+function desfazer(){if(hist.length){hist.pop();dirty=false;save();render()}}
+let resetTimer=null;
+function novaSessao(){
+  const b=$('bn'),encerrada=$('status').classList.contains('on');
+  if(!hist.length||encerrada||resetTimer){
+    clearTimeout(resetTimer);resetTimer=null;b.textContent='🔄 Nova sessão';
+    hist=[];dirty=false;save();render();return;
+  }
+  // confirmação no próprio botão (confirm() pode ser bloqueado no navegador)
+  b.textContent='⚠ Clique de novo para apagar';
+  resetTimer=setTimeout(()=>{resetTimer=null;b.textContent='🔄 Nova sessão'},4000);
+}
+
+function render(){
+  const c=cfg();
+  if(!(c.banca>0&&c.base>0&&c.alvo>0&&c.r>0&&c.p>0&&c.stop>0))return;
+  const pw=piorCaso(c);
+  $('planNote').innerHTML='Meta '+brl(c.alvo)+' (5%) &nbsp;|&nbsp; stop '+brl(lossLim(c))+' &nbsp;|&nbsp; entrada inicial '+brl(c.base)+(pw.ok
+    ?'<br><span class="ok">Plano fecha a meta em qualquer ordem de 4 wins e 6 reds</span> (pior caso: perda de '+brl(pw.perda)+').'
+    :'<br><span class="wn">Em alguns cenários ruins o stop é atingido antes da meta.</span>');
+  const L=lucro(),n=hist.length,lim=lossLim(c),saldo=c.banca+L;
+  const wins=hist.filter(h=>h.w).length,reds=n-wins;
+  const real=n?wins/n:0;
+  const cl=cicloLoss();
+  const es=estado(c);
+  const sg=sug(c,es);
+  const fim=sg.m==='alvo'||sg.m==='stop';
+
+  // status
+  const st=$('status');
+  if(sg.m==='alvo'){st.className='status on s-ok';st.textContent='🎉 Alvo da sessão atingido: lucro de '+brl(L)+'. Encerre a sessão.'}
+  else if(sg.m==='stop'){st.className='status on s-bad';st.textContent='🛑 Stop atingido: perda de '+brl(-L)+'. Encerre a sessão.'}
+  else st.className='status';
+
+  // sugestão
+  $('sugV').textContent=fim?'—':brl(sg.s);
+  $('sugV').title='Clique para copiar';
+  const msg=(sg.m==='inicial'&&es.cy>1)?['Recomeço do ciclo','Recomeçou do zero com a entrada inicial. O objetivo deste ciclo é recuperar a dívida acumulada.','wn']:MSG[sg.m];
+  $('sugV').className='v '+(msg?msg[2]:'');
+  $('sugM').innerHTML=fim?'':`<span class="tag">${msg[0]}</span>`+(c.mod?` <span class="tag">Ciclo ${es.cy}</span>`:'')+`<div class="note">${msg[1]}</div>`+
+    (cl>0?`<div class="note">Prejuízo a recuperar até zerar: <b class="bad">${brl(cl)}</b></div>`:'')+
+    `<div class="note">Se der win: <b class="ok">+${brl(sg.s*c.r)}</b> &nbsp;|&nbsp; se der red: <b class="bad">-${brl(sg.s)}</b></div>`+
+    `<div class="note">Falta no plano: <b>${es.wl}</b> win(s) e <b>${es.rl}</b> red(s) &nbsp;|&nbsp; com esta entrada, wins necessários para fechar o ciclo: <b>${Math.ceil((alvoCiclo(c,es)-L)/(sg.s*c.r)-1e-9)}</b></div>`;
+  if(!dirty)$('stk').value=fim?'':sg.s.toFixed(2);
+  $('bw').disabled=$('br').disabled=fim;
+
+  // KPIs
+  const k=[
+    ['Saldo da sessão',brl(saldo),saldo>=c.banca?'ok':'bad'],
+    ['Lucro / prejuízo',(L>=0?'+':'')+brl(L),L>=0?'ok':'bad'],
+    ['Falta para o alvo',brl(Math.max(0,c.alvo-L)),''],
+    ['Margem até o stop',brl(Math.max(0,lim+L)),lim+L<lim*0.4?'bad':''],
+    ...(c.mod?[['Margem do ciclo '+es.cy,brl(Math.max(0,L-pisoCiclo(c,es))),''],['Dívida a recuperar',brl(Math.max(0,-L)),L<0?'bad':'']]:[]),
+    ['Entradas',n+' ('+wins+'W / '+reds+'R)',''],
+    ['Acerto real',n?pc(real):'—',n>=5&&real<1/(1+c.r)?'bad':''],
+    ['Valor esperado por R$ 1',((c.p*c.r-(1-c.p))>=0?'+':'')+brl(c.p*c.r-(1-c.p)),(c.p*c.r-(1-c.p))>=0?'ok':'bad']
+  ];
+  $('kpis').innerHTML=k.map(x=>`<div class="kpi"><small>${x[0]}</small><b class="${x[2]}">${x[1]}</b></div>`).join('');
+  const pa=Math.max(0,Math.min(1,L/c.alvo)),ps=Math.max(0,Math.min(1,-L/lim));
+  $('barA').style.width=pa*100+'%';$('barS').style.width=ps*100+'%';
+  $('pa').textContent=pc(pa);$('ps').textContent=pc(ps);
+
+  // probabilidades
+  if(fim){$('prob').innerHTML='';$('probNote').textContent=''}
+  else{
+    const r=sim(c,es,1500);
+    $('prob').innerHTML=[['Bater o alvo',r.a,'ok'],['Bater o stop',r.b,'bad'],['Acabar as entradas sem decidir',r.l,'wn']]
+      .map(x=>`<div class="kpi"><small>${x[0]}</small><b class="${x[2]}">${pc(x[1])}</b></div>`).join('');
+    const be=1/(1+c.r);
+    $('probNote').innerHTML=`Simulação das próximas entradas com ${pc(c.p)} de acerto e a mesma regra de entrada. Ponto de equilíbrio com payout de ${pc(c.r)}: <b>${pc(be)}</b>.`+
+      (c.p<be?' <span class="bad">Seu acerto estimado está abaixo do equilíbrio: a tendência é perder.</span>':'')+
+      (n>=8&&real<c.p-0.1?' <span class="wn">Seu acerto real na sessão está bem abaixo do estimado; as chances acima podem estar otimistas.</span>':'');
+  }
+
+  // histórico
+  let acc=0,stc=novoEst(c);
+  const rows=hist.map((h,i)=>{const cy=stc.cy;stc=passo(c,stc,h.w,h.pl);acc+=h.pl;return{i:i+1,h,acc,saldo:c.banca+acc,cy}}).reverse();
+  $('tb').innerHTML='<tr><th>#</th><th>Hora</th>'+(c.mod?'<th>Ciclo</th>':'')+'<th>Resultado</th><th>Entrada</th><th>Ganho/Perda</th><th>Lucro da sessão</th><th>Saldo</th></tr>'+
+    (rows.length?rows.map(x=>`<tr><td>${x.i}</td><td>${x.h.t}</td>${c.mod?`<td>${x.cy}</td>`:''}<td><span class="pill ${x.h.w?'w':'r'}">${x.h.w?'WIN':'RED'}</span></td><td>${brl(x.h.s)}</td><td class="${x.h.pl>=0?'ok':'bad'}">${x.h.pl>=0?'+':''}${brl(x.h.pl)}</td><td class="${x.acc>=0?'ok':'bad'}">${x.acc>=0?'+':''}${brl(x.acc)}</td><td>${brl(x.saldo)}</td></tr>`).join('')
+      :'<tr><td colspan="'+(c.mod?8:7)+'" style="text-align:center;color:var(--mut)">Nenhuma entrada registrada ainda.</td></tr>');
+}
+ids.forEach(i=>$(i).addEventListener('input',()=>{dirty=false;save();render()}));
+$('stk').addEventListener('input',()=>{dirty=true});
+$('sugV').addEventListener('click',()=>{if(!dirty)copiar();else{dirty=false;render();copiar()}});
+$('sugV').style.cursor='pointer';
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.ctrlKey||e.metaKey)return;
+  if(e.key==='w'||e.key==='W')reg(true);
+  if(e.key==='r'||e.key==='R')reg(false);
+});
+load();render();
+</script>
+</body>
+</html>
