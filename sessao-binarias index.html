@@ -72,6 +72,7 @@ th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)
       <div><label>Payout (%)</label><input id="payout" type="number" value="85" min="1" max="100"></div>
     </div>
     <div class="row">
+      <div><label>Meta (% da sessão)</label><input id="meta" type="number" value="5" min="0.1" max="100" step="any"></div>
       <div><label>Modo</label><select id="modo"><option value="agr">Agressiva</option><option value="mod">Moderada</option></select></div>
     </div>
     <div class="note" id="planNote" style="margin:6px 0 0"></div>
@@ -128,7 +129,7 @@ th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)
   <section class="card">
     <h2>Como a próxima entrada é calculada</h2>
     <div class="note" style="font-size:13.5px;margin-top:0">
-      Meta fixa de 5% da sessão, stop igual ao valor da sessão e plano de 10 entradas (4 wins e 6 reds, em qualquer ordem). A primeira entrada é 2% da sessão (mínimo R$ 2,00); as seguintes são calculadas para fechar a meta com os wins e reds que ainda faltam. Se o plano se esgota sem bater a meta, ele recomeça. <b>Agressiva:</b> segue até a meta ou até perder o valor da sessão. <b>Moderada:</b> ao perder 50% da sessão o ciclo termina; a perda vira dívida e um novo ciclo começa do zero para recuperá-la; depois a sessão volta a buscar a meta. Aumentar a entrada depois de reds não muda o valor esperado: só concentra o risco.
+      Meta definida por você em "Meta (% da sessão)" (padrão 5%), stop igual ao valor da sessão e plano de 10 entradas (4 wins e 6 reds, em qualquer ordem). A primeira entrada é 2% da sessão (mínimo R$ 2,00); as seguintes são calculadas para fechar a meta com os wins e reds que ainda faltam. Se o plano se esgota sem bater a meta, ele recomeça. Metas maiores exigem entradas maiores e aumentam o risco de bater o stop antes. <b>Agressiva:</b> segue até a meta ou até perder o valor da sessão. <b>Moderada:</b> ao perder 50% da sessão o ciclo termina; a perda vira dívida e um novo ciclo começa do zero para recuperá-la; depois a sessão volta a buscar a meta. Aumentar a entrada depois de reds não muda o valor esperado: só concentra o risco.
     </div>
   </section>
 </main>
@@ -139,16 +140,17 @@ const $=id=>document.getElementById(id);
 const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const pc=v=>(v*100).toFixed(0)+'%';
 let hist=[];let dirty=false;
-const ids=['banca','payout','modo'];
+const ids=['banca','payout','meta','modo'];
 const LIM_CICLO=0.5; // modo moderado: cada ciclo para ao perder 50% do valor da sessão
-const ENTRADAS=10,ACERTO=40,ENTRADA_MIN=2,BASE_PCT=2,ALVO_PCT=5; // valores fixos (campos removidos do painel)
+const ENTRADAS=10,ACERTO=40,ENTRADA_MIN=2,BASE_PCT=2; // valores fixos (campos removidos do painel)
 
 function cfg(){
   const g=i=>+$(i).value;
   const N=ENTRADAS;
   const p=ACERTO/100;
   let W=Math.round(N*p);W=Math.max(1,Math.min(N,W));
-  return{banca:g('banca'),base:Math.max(ENTRADA_MIN,Math.round(g('banca')*BASE_PCT)/100),stop:g('banca'),alvo:Math.round(g('banca')*ALVO_PCT)/100,r:g('payout')/100,p,minS:ENTRADA_MIN,maxS:Infinity,maxE:200,N,W,R:N-W,mod:$('modo').value==='mod'};
+  const metaPct=g('meta');
+  return{banca:g('banca'),base:Math.max(ENTRADA_MIN,Math.round(g('banca')*BASE_PCT)/100),stop:g('banca'),metaPct,alvo:Math.round(g('banca')*metaPct)/100,r:g('payout')/100,p,minS:ENTRADA_MIN,maxS:Infinity,maxE:200,N,W,R:N-W,mod:$('modo').value==='mod'};
 }
 function lossLim(c){return Math.min(c.stop,c.banca)}
 
@@ -310,7 +312,8 @@ function render(){
   const c=cfg();
   if(!(c.banca>0&&c.base>0&&c.alvo>0&&c.r>0&&c.p>0&&c.stop>0))return;
   const pw=piorCaso(c);
-  $('planNote').innerHTML='Meta '+brl(c.alvo)+' (5%) &nbsp;|&nbsp; stop '+brl(lossLim(c))+' &nbsp;|&nbsp; entrada inicial '+brl(c.base)+(pw.ok
+  const metaTxt=(Math.round(c.metaPct*100)/100).toString().replace('.',',');
+  $('planNote').innerHTML='Meta '+brl(c.alvo)+' ('+metaTxt+'%) &nbsp;|&nbsp; stop '+brl(lossLim(c))+' &nbsp;|&nbsp; entrada inicial '+brl(c.base)+(pw.ok
     ?'<br><span class="ok">Plano fecha a meta em qualquer ordem de 4 wins e 6 reds</span> (pior caso: perda de '+brl(pw.perda)+').'
     :'<br><span class="wn">Em alguns cenários ruins o stop é atingido antes da meta.</span>');
   const L=lucro(),n=hist.length,lim=lossLim(c),saldo=c.banca+L;
